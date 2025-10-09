@@ -193,6 +193,38 @@
     }.]
 }
 
+/// Get corresponding author
+///
+/// Returns the first author marked as corresponding author, or the first author with an email.
+///
+/// ```example
+/// #let author = pubmatter.get-corresponding-author(authors)
+/// ```
+///
+/// - authors (fm, array): The frontmatter object or authors directly
+/// -> dictionary
+#let get-corresponding-author(authors) = {
+  // Allow to pass frontmatter as well
+  let authors = if (type(authors) == dictionary and "authors" in authors) {authors.authors} else { authors }
+  if authors.len() == 0 { return none }
+
+  // First, look for an author with corresponding: true
+  for author in authors {
+    if ("corresponding" in author and author.corresponding == true) {
+      return author
+    }
+  }
+
+  // If none found, look for first author with email that doesn't have corresponding: false
+  for author in authors {
+    if ("email" in author and ("corresponding" not in author or author.corresponding != false)) {
+      return author
+    }
+  }
+
+  return none
+}
+
 /// Show authors
 ///
 /// ```example
@@ -205,6 +237,7 @@
 /// - show-orcid (boolean): Show orcid logo
 /// - show-email (boolean): Show email logo
 /// - show-github (boolean): Show github logo
+/// - show-equal-contributor (boolean): Show equal contributor asterisk
 /// - authors (fm, array): The frontmatter object or authors directly
 /// -> content
 #let show-authors(
@@ -214,6 +247,7 @@
   show-orcid: true,
   show-email: true,
   show-github: true,
+  show-equal-contributor: true,
   authors,
 ) = {
   // Allow to pass frontmatter as well
@@ -231,6 +265,9 @@
             super(author.affiliations)
           } else if (type(author.affiliations) == array) {
             super(author.affiliations.map((affiliation) => str(affiliation.index)).join(","))
+          }
+          if (show-equal-contributor and "equal-contributor" in author and author.equal-contributor) {
+            super("†")
           }
         }
         if (show-orcid and "orcid" in author) {
@@ -257,18 +294,29 @@
 /// - size (length): Size of the affiliations text
 /// - fill (color): Color of of the affiliations text
 /// - show-ror (boolean): Show ror logo
+/// - show-equal-contributor (boolean): Show equal contributor note
+/// - separator (str): Separator between affiliations
 /// - affiliations (fm, array): The frontmatter object or affiliations directly
 /// -> content
 #let show-affiliations(
-  size: 8pt, 
-  fill: gray.darken(50%), 
-  show-ror: true, 
+  size: 8pt,
+  fill: gray.darken(50%),
+  show-ror: true,
+  show-equal-contributor: true,
   separator: ", ",
   affiliations
   ) = {
   // Allow to pass frontmatter as well
+  let fm = affiliations
   let affiliations = if (type(affiliations) == dictionary and "affiliations" in affiliations) {affiliations.affiliations} else { affiliations }
   if affiliations.len() == 0 { return none }
+
+  // Check if any author has equal-contributor
+  let has-equal-contributor = false
+  if (show-equal-contributor and type(fm) == dictionary and "authors" in fm) {
+    has-equal-contributor = fm.authors.any(author => "equal-contributor" in author and author.equal-contributor)
+  }
+
   return box(inset: (bottom: 9pt), width: 100%, {
     with-theme((theme) => {
       set text(size, font: theme.font, fill: fill)
@@ -285,6 +333,13 @@
           ror-link(ror: affiliation.ror)
         }
       }).join(separator)
+
+      if (has-equal-contributor) {
+        "; "
+        super("†")
+        text(size: 2.5pt, [~]) // Ensure this is not a linebreak
+        [Contributed Equally]
+      }
     })
   })
 }
