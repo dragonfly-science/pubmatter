@@ -7,6 +7,12 @@ VERSION := $(shell sed -n 's/^version[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p
 PACKAGE_FOLDER :=  ../typst-packages/packages/preview/pubmatter/$(VERSION)
 
 copy-files:
+	@echo "Checking README.md for version $(VERSION)..."
+	@if ! grep -q "@preview/pubmatter:$(VERSION)" README.md; then \
+		echo "Error: README.md does not contain the latest version @preview/pubmatter:$(VERSION)"; \
+		exit 1; \
+	fi
+	@echo "✓ README.md contains correct version"
 	@echo "Creating folder: $(PACKAGE_FOLDER)"
 	@mkdir -p $(PACKAGE_FOLDER)
 	@echo "Copying files into $(PACKAGE_FOLDER) ..."
