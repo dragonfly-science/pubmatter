@@ -1,13 +1,6 @@
 #import "@preview/scienceicons:0.1.0": orcid-icon, email-icon, open-access-icon, github-icon, cc-icon, cc-zero-icon, cc-by-icon, cc-nc-icon, cc-nd-icon, cc-sa-icon, ror-icon
 #import "./validate-frontmatter.typ": load, show-citation
 
-#let THEME = state("THEME", (color: blue.darken(20%), font: ""))
-
-#let with-theme(func) = context {
-  let theme = THEME.at(here())
-  func(theme)
-}
-
 /// Create a ORCID link with an ORCID logo
 ///
 /// ```example
@@ -18,11 +11,11 @@
 /// -> content
 #let orcid-link(
   orcid: none,
+  orcid-color: rgb("#AECD54"),
 ) = {
-  let orcid-green = rgb("#AECD54")
-  if (orcid == none) { return orcid-icon(color: orcid-green) }
-  if (orcid.starts-with("https://")) { return link(orcid, orcid-icon(color: orcid-green)) }
-  return link("https://orcid.org/" + orcid, orcid-icon(color: orcid-green))
+  if (orcid == none) { return [#orcid-icon(color: orcid-color) <pm-orcid>]}
+  if (orcid.starts-with("https://")) { return [#link(orcid, orcid-icon(color: orcid-color)) <pm-orcid>] }
+  return [#link("https://orcid.org/" + orcid, orcid-icon(color: orcid-color)) <pm-orcid>]
 }
 
 /// Create a DOI link
@@ -36,8 +29,8 @@
 #let doi-link(doi: none) = {
   if (doi == none) { return none }
   // Proper practices are to show the whole DOI link in text
-  if (doi.starts-with("https://")) { return link(doi, doi) };
-  return link("https://doi.org/" + doi, "https://doi.org/" + doi)
+  if (doi.starts-with("https://")) { return [#link(doi, doi) <pm-doi>]};
+  return [#link("https://doi.org/" + doi, "https://doi.org/" + doi) <pm-doi>]
 }
 
 /// Create a ROR link
@@ -48,11 +41,12 @@
 ///
 /// - ror (str): Only include the ROR identifier, not the URL
 /// -> content
-#let ror-link(ror: none) = {
-  let ror-black = rgb("#2c2c2c")
+#let ror-link(ror: none,
+    ror-color: rgb("#2c2c2c"),
+) = {
   if (ror == none) { return none }
-  if (ror.starts-with("https://")) { return link(ror, ror-icon(color: ror-black)) };
-  return link("https://ror.org/" + ror, ror-icon(color: ror-black))
+  if (ror.starts-with("https://")) { return link(ror, ror-icon(color: ror-color)) };
+  return link("https://ror.org/" + ror, ror-icon(color: ror-color))
 }
 
 /// Create a mailto link with an email icon
@@ -63,9 +57,10 @@
 ///
 /// - email (str): Email as a string
 /// -> content
-#let email-link(email: none) = {
+#let email-link(email: none,
+  email-color: gray) = {
   if (email == none) { return none }
-  return link("mailto:" + email, email-icon(color: gray))
+  return link("mailto:" + email, email-icon(color: email-color))
 }
 
 /// Create a link to Wikipedia with an OpenAccess icon.
@@ -75,9 +70,8 @@
 /// ```
 ///
 /// -> content
-#let open-access-link() = {
-  let orange = rgb("#E78935")
-  return link("https://en.wikipedia.org/wiki/Open_access", open-access-icon(color: orange))
+#let open-access-link(oa-color: rgb("#E78935") = {
+  return link("https://en.wikipedia.org/wiki/Open_access", open-access-icon(color: oa-color))
 }
 
 
@@ -133,26 +127,26 @@
 ///
 /// - fm (fm): The frontmatter object
 /// -> content
-#let show-license-badge(color: black, fm) = {
+#let show-license-badge(license-color: black, fm) = {
   let license = if ("license" in fm) { fm.license }
   if (license == none) { return none }
   if (license.id == "CC0-1.0") {
-    return link(license.url, [#cc-icon(color: color)#cc-zero-icon(color: color)])
+    return link(license.url, [#cc-icon(color: license-color)#cc-zero-icon(color: license-color)])
   }
   if (license.id == "CC-BY-4.0") {
-    return link(license.url, [#cc-icon(color: color)#cc-by-icon(color: color)])
+    return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)])
   }
   if (license.id == "CC-BY-NC-4.0") {
-    return link(license.url, [#cc-icon(color: color)#cc-by-icon(color: color)#cc-nc-icon(color: color)])
+    return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)#cc-nc-icon(color: license-color)])
   }
   if (license.id == "CC-BY-NC-SA-4.0") {
-    return link(license.url, [#cc-icon(color: color)#cc-by-icon(color: color)#cc-nc-icon(color: color)])
+    return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)#cc-nc-icon(color: license-color)])
   }
   if (license.id == "CC-BY-ND-4.0") {
-    return link(license.url, [#cc-icon(color: color)#cc-by-icon(color: color)#cc-nd-icon(color: color)])
+    return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)#cc-nd-icon(color: license-color)])
   }
   if (license.id == "CC-BY-NC-ND-4.0") {
-    return link(license.url, [#cc-icon(color: color)#cc-by-icon(color: color)#cc-nc-icon(color: color)#cc-nd-icon(color: color)])
+    return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)#cc-nc-icon(color: license-color)#cc-nd-icon(color: license-color)])
   }
 }
 
@@ -173,7 +167,7 @@
   let license = if ("license" in fm) { fm.license }
   if (license == none) {
     return [Copyright © #{ year }
-      #citation#{if (fm.at("open-access", default: none) == true){[. This article is open-access.]}}]
+      #citation#{if (fm.at("open-access", default: none) == true){[. This article is open-access.]}} <pm-copyright>]
   }
   return [Copyright © #{ year }
     #citation.
@@ -190,7 +184,7 @@
       } else if (license.id == "CC-BY-NC-ND-4.0") {
         [, which enables reusers to copy and distribute the material in any medium or format in _unadapted form only_, for _noncommercial purposes only_, and only so long as attribution is given to the creator]
       }
-    }.]
+    }. <pm-copyright>]
 }
 
 /// Get corresponding author
@@ -231,8 +225,6 @@
 /// #pubmatter.show-authors(authors)
 /// ```
 ///
-/// - size (length): Size of the author text
-/// - weight (weight): Weight of the author text
 /// - show-affiliations (boolean): Show affiliations text
 /// - show-orcid (boolean): Show orcid logo
 /// - show-email (boolean): Show email logo
@@ -241,8 +233,6 @@
 /// - authors (fm, array): The frontmatter object or authors directly
 /// -> content
 #let show-authors(
-  size: 10pt,
-  weight: "semibold",
   show-affiliations: true,
   show-orcid: true,
   show-email: true,
@@ -253,12 +243,8 @@
   // Allow to pass frontmatter as well
   let authors = if (type(authors) == dictionary and "authors" in authors) {authors.authors} else { authors }
   if authors.len() == 0 { return none }
-
-  return box(inset: (top: 10pt, bottom: 5pt), width: 100%, {
-    with-theme((theme) => {
-      set text(size, font: theme.font)
       authors.map(author => {
-        text(size, font: theme.font, weight: weight, author.name)
+        text([#author.name <pm-author-name>])
         if (show-affiliations and "affiliations" in author) {
           text(size: 2.5pt, [~]) // Ensure this is not a linebreak
           if (type(author.affiliations) == str) {
@@ -280,8 +266,6 @@
           email-link(email: author.email)
         }
       }).join(", ", last: ", and ")
-    })
-  })
 }
 
 
@@ -299,8 +283,6 @@
 /// - affiliations (fm, array): The frontmatter object or affiliations directly
 /// -> content
 #let show-affiliations(
-  size: 8pt,
-  fill: gray.darken(50%),
   show-ror: true,
   show-equal-contributor: true,
   separator: ", ",
@@ -317,31 +299,26 @@
     has-equal-contributor = fm.authors.any(author => "equal-contributor" in author and author.equal-contributor)
   }
 
-  return box(inset: (bottom: 9pt), width: 100%, {
-    with-theme((theme) => {
-      set text(size, font: theme.font, fill: fill)
-      affiliations.map(affiliation => {
-        super(str(affiliation.index))
-        text(size: 2.5pt, [~]) // Ensure this is not a linebreak
-        if ("name" in affiliation) {
-          affiliation.name
-        } else if ("institution" in affiliation) {
-          affiliation.institution
-        }
-        if ("ror" in affiliation) {
-          text(size: 8pt, [~]) // Ensure this is not a linebreak
-          ror-link(ror: affiliation.ror)
-        }
-      }).join(separator)
-
-      if (has-equal-contributor) {
-        "; "
-        super("†")
-        text(size: 2.5pt, [~]) // Ensure this is not a linebreak
-        [Contributed Equally]
+  affiliations.map(affiliation => {
+    super(str(affiliation.index))
+    text(size: 2.5pt, [~]) // Ensure this is not a linebreak
+    if ("name" in affiliation) {
+      [#affiliation.name <pm-affiliation>]
+    } else if ("institution" in affiliation) {
+      affiliation.institution
+    }
+    if ("ror" in affiliation) {
+      text(size: 2.5pt, [~]) // Ensure this is not a linebreak
+      ror-link(ror: affiliation.ror)
       }
-    })
-  })
+  }).join(separator)
+
+  if (has-equal-contributor) {
+    "; "
+    super("†")
+    text(size: 2.5pt, [~]) // Ensure this is not a linebreak
+    [Contributed Equally]
+  }
 }
 
 
@@ -367,18 +344,15 @@
 /// - fm (fm): The frontmatter object
 /// -> content
 #let show-title(fm) = {
-  with-theme(theme => {
-    set text(font: theme.font)
     let title = if (type(fm) == dictionary and "title" in fm) {fm.title} else if (type(fm) == str or type(fm) == content) { fm } else { none }
     let subtitle = if (type(fm) == dictionary and "subtitle" in fm) {fm.subtitle} else { none }
     if (title != none) {
-      box(inset: (bottom: 2pt), width: 100%, text(17pt, weight: "bold", fill: theme.color, title))
+      text([#title <pm-title>])
     }
     if (subtitle != none) {
       parbreak()
-      box(width: 100%, text(12pt, fill: gray.darken(30%), subtitle))
+      text([#subtitle <pm-subtitle>])
     }
-  })
 }
 
 /// Show title block - title, authors and affiliations
@@ -390,80 +364,10 @@
 /// - fm (fm): The frontmatter object
 /// -> content
 #let show-title-block(fm) = {
-  with-theme(theme => {
-    show-title(fm)
-    show-author-block(fm)
-  })
+  show-title(fm)
+  show-author-block(fm)
 }
 
-/// Show page footer
-///
-/// Default is the venue, date and page numbers
-///
-/// ```example
-/// #pubmatter.show-page-footer(fm)
-/// ```
-///
-/// - fm (fm): The frontmatter object
-/// -> content
-#let show-page-footer(fm) = {
-  return block(
-    width: 100%,
-    stroke: (top: 1pt + gray),
-    inset: (top: 8pt, right: 2pt),
-    with-theme((theme) => [
-      #set text(font: theme.font)
-      #grid(columns: (75%, 25%),
-        align(left, text(size: 9pt, fill: gray.darken(50%),
-            show-spaced-content((
-              if("venue" in fm) {emph(fm.venue)},
-              if("date" in fm and fm.date != none) {fm.date.display("[month repr:long] [day], [year]")}
-            ))
-        )),
-        align(right)[
-          #text(
-            size: 9pt, fill: gray.darken(50%)
-          )[
-            #counter(page).display() of #{context {counter(page).final().first()}}
-          ]
-        ]
-      )
-    ])
-  )
-}
-
-/// Show page header
-///
-/// Default an open-access badge and the DOI and then the running-title and citation
-///
-/// ```example
-/// #pubmatter.show-page-header(fm)
-/// ```
-///
-/// - fm (fm): The frontmatter object
-/// -> content
-#let show-page-header(fm) = context {
-  let loc = here()
-  if(loc.page() == 1) {
-    let headers = (
-      if ("open-access" in fm) {[#smallcaps[Open Access] #open-access-link()]},
-      if ("doi" in fm) { link("https://doi.org/" + fm.doi, "https://doi.org/" + fm.doi)}
-    )
-    // TODO: There is a bug in the first page state update
-    // https://github.com/typst/typst/issues/2987
-    return with-theme((theme) => {
-      align(left, text(size: 8pt, font: theme.font, fill: gray, show-spaced-content(headers)))
-    })
-  } else {
-    return  with-theme((theme) => {align(right + top, box(inset: (top: 1cm), text(size: 8pt, font: theme.font, fill: gray.darken(50%),
-      show-spaced-content((
-        if ("short-title" in fm) { fm.short-title } else if ("title" in fm) { fm.title },
-        if ("citation" in fm) { fm.citation },
-      )))
-    ))
-    })
-  }
-}
 
 /// Show all abstracts (e.g. abstract, plain language summary)
 ///
@@ -482,16 +386,11 @@
   } else {
     return
   }
-
-  with-theme((theme) => {
     abstracts.map(abs => {
-      set text(font: theme.font)
-      text(fill: theme.color, weight: "semibold", size: 9pt, abs.title)
+      text(abs.title)
       parbreak()
-      set par(justify: true)
-      text(size: 9pt, abs.content)
+      abs.content)
     }).join(parbreak())
-  })
 }
 
 /// Show keywords
@@ -510,13 +409,7 @@
     return
   }
   if (keywords.len() > 0) {
-    with-theme((theme) => {
-      text(size: 9pt, font: theme.font, {
-        text(fill: theme.color, weight: "semibold", "Keywords")
-        h(8pt)
-        keywords.join(", ")
-      })
-    })
+    keywords.join(", ")
   }
 }
 
@@ -529,7 +422,6 @@
 /// - fm (fm): The frontmatter object
 /// -> content
 #let show-abstract-block(fm) = {
-  box(inset: (top: 16pt, bottom: 16pt), stroke: (top: 0.5pt + gray.lighten(30%), bottom: 0.5pt + gray.lighten(30%)), show-abstracts(fm))
+  show-abstracts(fm)
   show-keywords(fm)
-  v(10pt)
 }
