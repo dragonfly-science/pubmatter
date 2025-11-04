@@ -1,7 +1,7 @@
 #import "@preview/tidy:0.2.0"
 #import "./pubmatter.typ"
 
-#let example = (it) => {
+#let example = it => {
   box(fill: luma(95%), inset: (x: 10pt), width: 100%, it)
 }
 
@@ -26,28 +26,24 @@
 
     Our goal is to introduce standardized ways of working with this content to expose metadata to scientific publishers who are interested in using typst in a standardized way. The specification for this pubmatter is based on MyST Markdown and Quarto, and can load their YAML files directly.
   ],
-  keywords: ("typst package", "open-science", "standards")
+  keywords: ("typst package", "open-science", "standards"),
 ))
 
 
-#show raw.where(lang: "example"): (it) => {
+#show raw.where(lang: "example"): it => {
   set text(font: "Noto Sans", size: 9pt)
   box(inset: (left: 10pt, y: 5pt), stroke: (left: blue + 2pt))[
     #raw(lang: "typst", it.text.replace(regex("pubmatter."), ""))
-      #box(fill: luma(95%), inset: (x: 10pt, y: 5pt), width: 100%, eval("[" + it.text + "]", scope: (
-        pubmatter: pubmatter,
-        fm: fm,
-        authors: fm.authors,
-        affiliations: fm.affiliations,
-      )
-    ))
+    #box(fill: luma(95%), inset: (x: 10pt, y: 5pt), width: 100%, eval("[" + it.text + "]", scope: (
+      pubmatter: pubmatter,
+      fm: fm,
+      authors: fm.authors,
+      affiliations: fm.affiliations,
+    )))
   ]
 }
 
 
-#let theme = (color: red.darken(20%), font: "Noto Sans")
-#state("THEME").update(theme)
-#set page(header: pubmatter.show-page-header(fm), footer: pubmatter.show-page-footer(fm))
 #show link: it => [#text(fill: blue)[#it]]
 
 #pubmatter.show-title-block(fm)
@@ -91,23 +87,6 @@ You can also use a `dictionary` directly:
 ))
 #pubmatter.show-author-block(fm)
 ```
-
-#pagebreak()
-
-= Theming
-
-The theme including color and font choice can be set using the `THEME` state.
-For example, this document has the following theme set:
-
-```typst
-#let theme = (color: red.darken(20%), font: "Noto Sans")
-#state("THEME").update(theme)
-#set page(header: pubmatter.show-page-header(fm), footer: pubmatter.show-page-footer(fm))
-```
-
-Note that for the `header` the theme must be passed in directly. This will hopefully become easier in the future, however, there is a current bug that removes the page header/footer if you set this above the `set page`. See #link("https://github.com/typst/typst/issues/2987")[\#2987].
-
-The `font` option only corresponds to the frontmatter content (abstracts, title, header/footer etc.) allowing the body of your document to have a different font choice.
 
 #pagebreak()
 
@@ -191,5 +170,5 @@ Note that you will usually write the affiliations directly in line, in the follo
   name: "validate-frontmatter",
 )
 
-#tidy.show-module(docs)
-#tidy.show-module(validate-docs)
+#tidy.show-module(docs, style: tidy.styles.minimal)
+#tidy.show-module(validate-docs, style: tidy.styles.minimal)

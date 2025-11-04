@@ -1,4 +1,7 @@
-#import "@preview/scienceicons:0.1.0": orcid-icon, email-icon, open-access-icon, github-icon, cc-icon, cc-zero-icon, cc-by-icon, cc-nc-icon, cc-nd-icon, cc-sa-icon, ror-icon
+#import "@preview/scienceicons:0.1.0": (
+  cc-by-icon, cc-icon, cc-nc-icon, cc-nd-icon, cc-sa-icon, cc-zero-icon, email-icon, github-icon, open-access-icon,
+  orcid-icon, ror-icon,
+)
 #import "./validate-frontmatter.typ": load, show-citation
 
 /// Create a ORCID link with an ORCID logo
@@ -13,7 +16,7 @@
   orcid: none,
   orcid-color: rgb("#AECD54"),
 ) = {
-  if (orcid == none) { return [#orcid-icon(color: orcid-color) <pm-orcid>]}
+  if (orcid == none) { return [#orcid-icon(color: orcid-color) <pm-orcid>] }
   if (orcid.starts-with("https://")) { return [#link(orcid, orcid-icon(color: orcid-color)) <pm-orcid>] }
   return [#link("https://orcid.org/" + orcid, orcid-icon(color: orcid-color)) <pm-orcid>]
 }
@@ -29,7 +32,7 @@
 #let doi-link(doi: none) = {
   if (doi == none) { return none }
   // Proper practices are to show the whole DOI link in text
-  if (doi.starts-with("https://")) { return [#link(doi, doi) <pm-doi>]};
+  if (doi.starts-with("https://")) { return [#link(doi, doi) <pm-doi>] }
   return [#link("https://doi.org/" + doi, "https://doi.org/" + doi) <pm-doi>]
 }
 
@@ -41,13 +44,12 @@
 ///
 /// - ror (str): Only include the ROR identifier, not the URL
 /// -> content
-#let ror-link(ror: none,
-    ror-color: rgb("#2c2c2c"),
-) = {
+#let ror-link(ror: none, ror-color: rgb("#2c2c2c")) = {
   if (ror == none) { return none }
-  if (ror.starts-with("https://")) { return link(ror, ror-icon(color: ror-color)) };
+  if (ror.starts-with("https://")) { return link(ror, ror-icon(color: ror-color)) }
   return link("https://ror.org/" + ror, ror-icon(color: ror-color))
 }
+
 
 /// Create a mailto link with an email icon
 ///
@@ -57,23 +59,10 @@
 ///
 /// - email (str): Email as a string
 /// -> content
-#let email-link(email: none,
-  email-color: gray) = {
+#let email-link(email: none, email-color: gray) = {
   if (email == none) { return none }
   return link("mailto:" + email, email-icon(color: email-color))
 }
-
-/// Create a link to Wikipedia with an OpenAccess icon.
-///
-/// ```example
-/// #pubmatter.open-access-link()
-/// ```
-///
-/// -> content
-#let open-access-link(oa-color: rgb("#E78935") = {
-  return link("https://en.wikipedia.org/wiki/Open_access", open-access-icon(color: oa-color))
-}
-
 
 /// Create a link to a GitHub profile with the GitHub icon.
 ///
@@ -87,6 +76,19 @@
   if (github.starts-with("https://")) { return link(github, github-icon()) }
   return link("https://github.com/" + github, github-icon())
 }
+
+
+/// Create a link to Wikipedia with an OpenAccess icon.
+///
+/// ```example
+/// #pubmatter.open-access-link()
+/// ```
+///
+/// -> content
+#let open-access-link(oa-color: rgb("#E78935")) = {
+  return link("https://en.wikipedia.org/wiki/Open_access", open-access-icon(color: oa-color))
+}
+
 
 
 /// Create a spaced content array separated with a `spacer`.
@@ -137,16 +139,24 @@
     return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)])
   }
   if (license.id == "CC-BY-NC-4.0") {
-    return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)#cc-nc-icon(color: license-color)])
+    return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)#cc-nc-icon(
+        color: license-color,
+      )])
   }
   if (license.id == "CC-BY-NC-SA-4.0") {
-    return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)#cc-nc-icon(color: license-color)])
+    return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)#cc-nc-icon(
+        color: license-color,
+      )])
   }
   if (license.id == "CC-BY-ND-4.0") {
-    return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)#cc-nd-icon(color: license-color)])
+    return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)#cc-nd-icon(
+        color: license-color,
+      )])
   }
   if (license.id == "CC-BY-NC-ND-4.0") {
-    return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)#cc-nc-icon(color: license-color)#cc-nd-icon(color: license-color)])
+    return link(license.url, [#cc-icon(color: license-color)#cc-by-icon(color: license-color)#cc-nc-icon(
+        color: license-color,
+      )#cc-nd-icon(color: license-color)])
   }
 }
 
@@ -167,11 +177,13 @@
   let license = if ("license" in fm) { fm.license }
   if (license == none) {
     return [Copyright © #{ year }
-      #citation#{if (fm.at("open-access", default: none) == true){[. This article is open-access.]}} <pm-copyright>]
+      #citation#{
+        if (fm.at("open-access", default: none) == true) { [. This article is open-access.] }
+      } <pm-copyright>]
   }
   return [Copyright © #{ year }
     #citation.
-    This #{if (fm.at("open-access", default: none) == true){[is an open-access article]} else {[article is]}} distributed under the terms of the
+    This #{ if (fm.at("open-access", default: none) == true) { [is an open-access article] } else { [article is] } } distributed under the terms of the
     #link(license.url, license.name) license#{
       if (license.id == "CC-BY-4.0") {
         [, which enables reusers to distribute, remix, adapt, and build upon the material in any medium or format, so long as attribution is given to the creator]
@@ -199,7 +211,7 @@
 /// -> dictionary
 #let get-corresponding-author(authors) = {
   // Allow to pass frontmatter as well
-  let authors = if (type(authors) == dictionary and "authors" in authors) {authors.authors} else { authors }
+  let authors = if (type(authors) == dictionary and "authors" in authors) { authors.authors } else { authors }
   if authors.len() == 0 { return none }
 
   // First, look for an author with corresponding: true
@@ -241,31 +253,33 @@
   authors,
 ) = {
   // Allow to pass frontmatter as well
-  let authors = if (type(authors) == dictionary and "authors" in authors) {authors.authors} else { authors }
+  let authors = if (type(authors) == dictionary and "authors" in authors) { authors.authors } else { authors }
   if authors.len() == 0 { return none }
-      authors.map(author => {
-        text([#author.name <pm-author-name>])
-        if (show-affiliations and "affiliations" in author) {
-          text(size: 2.5pt, [~]) // Ensure this is not a linebreak
-          if (type(author.affiliations) == str) {
-            super(author.affiliations)
-          } else if (type(author.affiliations) == array) {
-            super(author.affiliations.map((affiliation) => str(affiliation.index)).join(","))
-          }
-          if (show-equal-contributor and "equal-contributor" in author and author.equal-contributor) {
-            super("†")
-          }
+  authors
+    .map(author => {
+      text([#author.name <pm-author-name>])
+      if (show-affiliations and "affiliations" in author) {
+        text(size: 2.5pt, [~]) // Ensure this is not a linebreak
+        if (type(author.affiliations) == str) {
+          super(author.affiliations)
+        } else if (type(author.affiliations) == array) {
+          super(author.affiliations.map(affiliation => str(affiliation.index)).join(","))
         }
-        if (show-orcid and "orcid" in author) {
-          orcid-link(orcid: author.orcid)
+        if (show-equal-contributor and "equal-contributor" in author and author.equal-contributor) {
+          super("†")
         }
-        if (show-github and "github" in author) {
-          github-link(github: author.github)
-        }
-        if (show-email and "email" in author) {
-          email-link(email: author.email)
-        }
-      }).join(", ", last: ", and ")
+      }
+      if (show-orcid and "orcid" in author) {
+        orcid-link(orcid: author.orcid)
+      }
+      if (show-github and "github" in author) {
+        github-link(github: author.github)
+      }
+      if (show-email and "email" in author) {
+        email-link(email: author.email)
+      }
+    })
+    .join(", ", last: ", and ")
 }
 
 
@@ -275,8 +289,6 @@
 /// #pubmatter.show-affiliations(affiliations)
 /// ```
 ///
-/// - size (length): Size of the affiliations text
-/// - fill (color): Color of of the affiliations text
 /// - show-ror (boolean): Show ror logo
 /// - show-equal-contributor (boolean): Show equal contributor note
 /// - separator (str): Separator between affiliations
@@ -286,11 +298,13 @@
   show-ror: true,
   show-equal-contributor: true,
   separator: ", ",
-  affiliations
-  ) = {
+  affiliations,
+) = {
   // Allow to pass frontmatter as well
   let fm = affiliations
-  let affiliations = if (type(affiliations) == dictionary and "affiliations" in affiliations) {affiliations.affiliations} else { affiliations }
+  let affiliations = if (type(affiliations) == dictionary and "affiliations" in affiliations) {
+    affiliations.affiliations
+  } else { affiliations }
   if affiliations.len() == 0 { return none }
 
   // Check if any author has equal-contributor
@@ -299,19 +313,21 @@
     has-equal-contributor = fm.authors.any(author => "equal-contributor" in author and author.equal-contributor)
   }
 
-  affiliations.map(affiliation => {
-    super(str(affiliation.index))
-    text(size: 2.5pt, [~]) // Ensure this is not a linebreak
-    if ("name" in affiliation) {
-      [#affiliation.name <pm-affiliation>]
-    } else if ("institution" in affiliation) {
-      affiliation.institution
-    }
-    if ("ror" in affiliation) {
+  affiliations
+    .map(affiliation => {
+      super(str(affiliation.index))
       text(size: 2.5pt, [~]) // Ensure this is not a linebreak
-      ror-link(ror: affiliation.ror)
+      if ("name" in affiliation) {
+        [#affiliation.name <pm-affiliation>]
+      } else if ("institution" in affiliation) {
+        affiliation.institution
       }
-  }).join(separator)
+      if ("ror" in affiliation) {
+        text(size: 2.5pt, [~]) // Ensure this is not a linebreak
+        ror-link(ror: affiliation.ror)
+      }
+    })
+    .join(separator)
 
   if (has-equal-contributor) {
     "; "
@@ -344,15 +360,17 @@
 /// - fm (fm): The frontmatter object
 /// -> content
 #let show-title(fm) = {
-    let title = if (type(fm) == dictionary and "title" in fm) {fm.title} else if (type(fm) == str or type(fm) == content) { fm } else { none }
-    let subtitle = if (type(fm) == dictionary and "subtitle" in fm) {fm.subtitle} else { none }
-    if (title != none) {
-      text([#title <pm-title>])
-    }
-    if (subtitle != none) {
-      parbreak()
-      text([#subtitle <pm-subtitle>])
-    }
+  let title = if (type(fm) == dictionary and "title" in fm) { fm.title } else if (
+    type(fm) == str or type(fm) == content
+  ) { fm } else { none }
+  let subtitle = if (type(fm) == dictionary and "subtitle" in fm) { fm.subtitle } else { none }
+  if (title != none) {
+    text([#title <pm-title>])
+  }
+  if (subtitle != none) {
+    parbreak()
+    text([#subtitle <pm-subtitle>])
+  }
 }
 
 /// Show title block - title, authors and affiliations
@@ -386,11 +404,13 @@
   } else {
     return
   }
-    abstracts.map(abs => {
+  abstracts
+    .map(abs => {
       text(abs.title)
       parbreak()
-      abs.content)
-    }).join(parbreak())
+      abs.content
+    })
+    .join(parbreak())
 }
 
 /// Show keywords
@@ -409,7 +429,7 @@
     return
   }
   if (keywords.len() > 0) {
-    keywords.join(", ")
+    [#keywords.join(", ") <pm-keywords>]
   }
 }
 
