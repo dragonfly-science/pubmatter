@@ -85,7 +85,7 @@
       }
       panic("Unknown datetime object from dictionary, try: `(year: 2022, month: 2, day: 3)`")
     }
-    panic("Unknown date of type '" + type(rawDate)+ "' accepts: datetime, str, int, and object")
+    panic("Unknown date of type '" + type(rawDate) + "' accepts: datetime, str, int, and object")
   }
   if (type(alias) != array) { return }
   for a in alias { if (a in raw) { return validateDate(raw, a) } }
@@ -94,8 +94,8 @@
 #let validateAffiliation(raw) = {
   let out = (:)
   if (type(raw) == str) {
-    out.name = raw;
-    return out;
+    out.name = raw
+    return out
   }
   let id = validateString(raw, "id")
   if (id != none) { out.id = id }
@@ -115,7 +115,14 @@
   if (city != none) { out.city = city }
   let region = validateString(raw, "region", alias: ("state", "province"))
   if (region != none) { out.region = region }
-  let postal-code = validateString(raw, "postal-code", alias: ("postal_code", "postalCode", "zip_code", "zip-code", "zipcode", "zipCode"))
+  let postal-code = validateString(raw, "postal-code", alias: (
+    "postal_code",
+    "postalCode",
+    "zip_code",
+    "zip-code",
+    "zipcode",
+    "zipCode",
+  ))
   if (postal-code != none) { out.postal-code = postal-code }
   let country = validateString(raw, "country")
   if (country != none) { out.country = country }
@@ -129,7 +136,7 @@
   if (url != none) { out.url = url }
   let collaboration = validateBoolean(raw, "collaboration")
   if (collaboration != none) { out.collaboration = collaboration }
-  return out;
+  return out
 }
 
 #let pickAffiliationsObject(raw) = {
@@ -139,7 +146,7 @@
   if ("affiliation" in raw) {
     raw.affiliations = raw.affiliation
   }
-  if ("affiliations" not in raw) { return; }
+  if ("affiliations" not in raw) { return }
   if (type(raw.affiliations) == str or type(raw.affiliations) == dictionary) {
     // convert to a list
     return (validateAffiliation(raw.affiliations),)
@@ -154,9 +161,9 @@
 #let validateAuthor(raw) = {
   let out = (:)
   if (type(raw) == str) {
-    out.name = raw;
+    out.name = raw
     out.affiliations = ()
-    return out;
+    return out
   }
   let name = validateString(raw, "name")
   if (name != none) { out.name = name }
@@ -183,10 +190,10 @@
   let note = validateString(raw, "note")
   if (note != none) { out.note = note }
 
-  let affiliations = pickAffiliationsObject(raw);
+  let affiliations = pickAffiliationsObject(raw)
   if (affiliations != none) { out.affiliations = affiliations } else { out.affiliations = () }
 
-  return out;
+  return out
 }
 
 #let consolidateAffiliations(authors, affiliations) = {
@@ -203,7 +210,9 @@
   for author in authors {
     let affCnt = 0
     for affiliation in author.affiliations {
-      let pos = affiliations.position(item => { ("id" in item and item.id == affiliation.name) or ("name" in item and item.name == affiliation.name) })
+      let pos = affiliations.position(item => {
+        ("id" in item and item.id == affiliation.name) or ("name" in item and item.name == affiliation.name)
+      })
       if (pos != none) {
         affiliation.remove("name")
         affiliation.id = affiliations.at(pos).id
@@ -246,7 +255,7 @@
 /// - fm (fm): The frontmatter object
 /// -> content
 #let show-citation(show-year: true, fm) = {
-  if ("authors" not in fm) {return none}
+  if ("authors" not in fm) { return none }
   let authors = fm.authors
   let date = fm.date
   let year = if (show-year and date != none) { ", " + date.display("[year]") } else { none }
@@ -260,12 +269,35 @@
   return none
 }
 
+// Copyright can be specified as a string, or else as holder and year fields
+#let validateCopyright(raw) = {
+  if ("copyright" not in raw) { return none }
+  let rawCopyright = raw.at("copyright")
+  if (type(rawCopyright) == str) {
+    return rawCopyright
+  } else if ("statement" in rawCopyright) {
+    return validateString(rawCopyright, "statement")
+  } else if ("holder" in rawCopyright and "year" in rawCopyright) {
+    let copyrightHolder = validateString(rawCopyright, "holder")
+    // Define a year:
+    let copyrightYear = if ("year" in rawCopyright) {
+      validateDate(rawCopyright, "year")
+    } else if ("date" in raw) {
+      validateDate(raw, "year")
+    } else {
+      datetime.today()
+    }
+    return "Copyright " + copyrightHolder + " (" + str(copyrightYear.year()) + ")"
+  } else {
+    panic("Unexpected copyright fields")
+  }
+}
 
 #let validateLicense(raw) = {
   if ("license" not in raw) { return none }
   let rawLicense = raw.at("license")
   if (type(rawLicense) == str) {
-    if (rawLicense == "CC0"  or rawLicense == "CC0-1.0") {
+    if (rawLicense == "CC0" or rawLicense == "CC0-1.0") {
       return (
         id: "CC0-1.0",
         url: "https://creativecommons.org/licenses/zero/1.0/",
@@ -305,7 +337,10 @@
     panic("Unknown license string: '" + rawLicense + "'")
   }
   if (type(rawLicense) == dictionary) {
-    assert("id" in rawLicense and "url" in rawLicense and "name" in rawLicense, message: "License must contain fields of 'id' (the SPDX ID), 'url': the URL to the license, and 'name' the human-readable license name")
+    assert(
+      "id" in rawLicense and "url" in rawLicense and "name" in rawLicense,
+      message: "License must contain fields of 'id' (the SPDX ID), 'url': the URL to the license, and 'name' the human-readable license name",
+    )
     let id = validateString(rawLicense, "id")
     let url = validateString(rawLicense, "url")
     let name = validateString(rawLicense, "name")
@@ -320,7 +355,16 @@
   if (title != none) { out.title = title }
   let subtitle = validateContent(raw, "subtitle")
   if (subtitle != none) { out.subtitle = subtitle }
-  let short-title = validateString(raw, "short-title", alias: ("short_title", "shortTitle", "running-head", "running_head", "runningHead", "runningTitle", "running_title", "running-title"))
+  let short-title = validateString(raw, "short-title", alias: (
+    "short_title",
+    "shortTitle",
+    "running-head",
+    "running_head",
+    "runningHead",
+    "runningTitle",
+    "running_title",
+    "running-title",
+  ))
   if (short-title != none) { out.short-title = short-title }
 
   // author information
@@ -344,10 +388,10 @@
     out.authors = ()
   }
 
-  let affiliations = pickAffiliationsObject(raw);
+  let affiliations = pickAffiliationsObject(raw)
   if (affiliations != none) { out.affiliations = affiliations } else { out.affiliations = () }
 
-  let open-access = validateBoolean(raw, "open-access", alias: ("open_access", "openAccess",))
+  let open-access = validateBoolean(raw, "open-access", alias: ("open_access", "openAccess"))
   if (open-access != none) { out.open-access = open-access }
   let venue = validateString(raw, "venue")
   if (venue != none) { out.venue = venue }
@@ -355,21 +399,26 @@
   if (subject != none) { out.subject = subject }
   let license = validateLicense(raw)
   if (license != none) { out.license = license }
+  let copyright = validateCopyright(raw)
+  if (copyright != none) { out.copyright = copyright }
   let doi = validateString(raw, "doi")
   if (doi != none) {
-    assert(not doi.starts-with("http"), message: "DOIs should not include the link, use only the part after `https://doi.org/[]`")
+    assert(
+      not doi.starts-with("http"),
+      message: "DOIs should not include the link, use only the part after `https://doi.org/[]`",
+    )
     out.doi = doi
   }
 
   if ("date" in raw) {
-    out.date = validateDate(raw, "date");
+    out.date = validateDate(raw, "date")
   } else {
     out.date = datetime.today()
   }
   let citation = validateString(raw, "citation")
 
   if (citation != none) {
-    out.citation = citation;
+    out.citation = citation
   } else {
     out.citation = show-citation(out)
   }
@@ -392,7 +441,7 @@
     }
     if (type(raw.abstracts) == array) {
       // validate each entry
-      out.abstracts = raw.abstracts.map((abs) => {
+      out.abstracts = raw.abstracts.map(abs => {
         if (type(abs) != dictionary or "title" not in abs or "content" not in abs) {
           return
         }
@@ -405,7 +454,7 @@
 
   let keywords = validateArray(raw, "keywords")
   if (keywords != none) {
-    out.keywords = keywords.map((k) => validateString((keyword: k), "keyword"))
+    out.keywords = keywords.map(k => validateString((keyword: k), "keyword"))
   }
 
   let consolidated = consolidateAffiliations(out.authors, out.affiliations)

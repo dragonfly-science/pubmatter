@@ -160,43 +160,36 @@
   }
 }
 
-/// Show copyright
+/// Show license
 ///
-/// Function chose a short citation with the copyright year followed by the license text.
-/// If the license is a Creative Commons License, additional explainer text is shown.
+/// Function that returns license text
+.
 ///
 /// ```example
-/// #pubmatter.show-copyright(fm)
+/// #pubmatter.show-license(fm)
 /// ```
 ///
 /// - fm (fm): The frontmatter object
 /// -> content
-#let show-copyright(fm) = {
-  let year = if (fm.date != none) { fm.date.display("[year]") }
-  let citation = show-citation(show-year: false, fm)
+#let show-license(fm) = {
   let license = if ("license" in fm) { fm.license }
   if (license == none) {
-    return [Copyright © #{ year }
-      #citation#{
-        if (fm.at("open-access", default: none) == true) { [. This article is open-access.] }
-      } <pm-copyright>]
+    return [All rights reserved. <pm-license>]
   }
-  return [Copyright © #{ year }
-    #citation.
-    This #{ if (fm.at("open-access", default: none) == true) { [is an open-access article] } else { [article is] } } distributed under the terms of the
+  return [ Distributed under the terms of the
     #link(license.url, license.name) license#{
       if (license.id == "CC-BY-4.0") {
-        [, which enables reusers to distribute, remix, adapt, and build upon the material in any medium or format, so long as attribution is given to the creator]
+        [, which enables reusers to distribute, remix, adapt, and build upon the material in any medium or format, so long as attribution is given to the copyright holder]
       } else if (license.id == "CC-BY-NC-4.0") {
-        [, which enables reusers to distribute, remix, adapt, and build upon the material in any medium or format for _noncommercial purposes only_, and only so long as attribution is given to the creator]
+        [, which enables reusers to distribute, remix, adapt, and build upon the material in any medium or format for _noncommercial purposes only_, and only so long as attribution is given to the copyright holder]
       } else if (license.id == "CC-BY-NC-SA-4.0") {
         [, which enables reusers to distribute, remix, adapt, and build upon the material in any medium or format for noncommercial purposes only, and only so long as attribution is given to the creator. If you remix, adapt, or build upon the material, you must license the modified material under identical terms]
       } else if (license.id == "CC-BY-ND-4.0") {
-        [, which enables reusers to copy and distribute the material in any medium or format in _unadapted form only_, and only so long as attribution is given to the creator]
+        [, which enables reusers to copy and distribute the material in any medium or format in _unadapted form only_, and only so long as attribution is given to the copyright holder]
       } else if (license.id == "CC-BY-NC-ND-4.0") {
-        [, which enables reusers to copy and distribute the material in any medium or format in _unadapted form only_, for _noncommercial purposes only_, and only so long as attribution is given to the creator]
+        [, which enables reusers to copy and distribute the material in any medium or format in _unadapted form only_, for _noncommercial purposes only_, and only so long as attribution is given to the copyright holder]
       }
-    }. <pm-copyright>]
+    }. <pm-license>]
 }
 
 /// Get corresponding author
@@ -209,7 +202,7 @@
 ///
 /// - authors (fm, array): The frontmatter object or authors directly
 /// -> dictionary
-#let get-corresponding-author(authors) = {
+#let get-corresponding-author(authors, show-email: true) = {
   // Allow to pass frontmatter as well
   let authors = if (type(authors) == dictionary and "authors" in authors) { authors.authors } else { authors }
   if authors.len() == 0 { return none }
@@ -217,17 +210,13 @@
   // First, look for an author with corresponding: true
   for author in authors {
     if ("corresponding" in author and author.corresponding == true) {
-      return author
+      if ("email" in author and show-email) {
+        return [#author (#link("mailto://" + author.email, author.email))]
+      } else {
+        return author
+      }
     }
   }
-
-  // If none found, look for first author with email that doesn't have corresponding: false
-  for author in authors {
-    if ("email" in author and ("corresponding" not in author or author.corresponding != false)) {
-      return author
-    }
-  }
-
   return none
 }
 
@@ -237,7 +226,7 @@
 /// #pubmatter.show-authors(authors)
 /// ```
 ///
-/// - show-affiliations (boolean): Show affiliations text
+/// - show-affiliation-block (boolean): Show affiliations text
 /// - show-orcid (boolean): Show orcid logo
 /// - show-email (boolean): Show email logo
 /// - show-github (boolean): Show github logo
@@ -245,7 +234,7 @@
 /// - authors (fm, array): The frontmatter object or authors directly
 /// -> content
 #let show-authors(
-  show-affiliations: true,
+  show-affiliation-block: true,
   show-orcid: true,
   show-email: true,
   show-github: true,
@@ -258,7 +247,7 @@
   authors
     .map(author => {
       text([#author.name <pm-author-name>])
-      if (show-affiliations and "affiliations" in author) {
+      if (show-affiliation-block and "affiliations" in author) {
         text(size: 2.5pt, [~]) // Ensure this is not a linebreak
         if (type(author.affiliations) == str) {
           super(author.affiliations)
@@ -344,11 +333,39 @@
 /// #pubmatter.show-author-block(fm)
 /// ```
 ///
+/// - show-affiliation-block (boolean): Show affiliations text
+/// - show-orcid (boolean): Show orcid logo
+/// - show-email (boolean): Show email logo
+/// - show-github (boolean): Show github logo
+/// - show-equal-contributor (boolean): Show equal contributor asterisk
+/// - show-ror (boolean): Show ror logo
+/// - affiliation-separator (str): Separator between affiliations
 /// - fm (fm): The frontmatter object
 /// -> content
-#let show-author-block(fm) = {
-  show-authors(fm)
-  show-affiliations(fm)
+#let show-author-block(
+  show-affiliation-block: true,
+  show-orcid: true,
+  show-email: true,
+  show-github: true,
+  show-equal-contributor: true,
+  show-ror: true,
+  affiliation-separator: ", ",
+  block-separator: v(4mm),
+  fm,
+) = {
+  show-authors(
+    show-affiliation-block: show-affiliation-block,
+    show-orcid: show-orcid,
+    show-email: show-email,
+    show-github: show-github,
+    show-equal-contributor: show-equal-contributor,
+    fm,
+  )
+  if (show-affiliation-block) {
+    linebreak()
+    box(block-separator)
+    show-affiliations(fm, show-ror: show-ror, separator: affiliation-separator)
+  }
 }
 
 /// Show title and subtitle
